@@ -1,0 +1,139 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Custom claim, set once by a local script (Phase 3).
+    function isAdmin() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function validUsername(name) {
+      return name is string && name.matches('^[A-Za-z0-9_]{3,20}$');
+    }
+
+    function validAvatar(data) {
+      return !('avatarId' in data)
+        || (data.avatarId is int && data.avatarId >= 0 && data.avatarId < 20);
+    }
+
+    function contestDoc(contestId) {
+      return get(/databases/$(database)/documents/contests/$(contestId)).data;
+    }
+
+    // Time and state come from the server clock (request.time), never the phone.
+    function entryWindowOpen(contest) {
+      return contest.status == 'PUBLISHED'
+        && request.time >= contest.opensAt
+        && request.time < contest.deadlineAt;
+    }
+
+    // Budget and position checks are done at publish time (Phase 11),
+    // because rules cannot loop over the squad.
+    function validEntry(data, contest) {
+      return data.selected is list
+        && data.selected.size() == contest.rules.squadSize
+        && data.selected.toSet().size() == data.selected.size()
+        && contest.players.keys().hasAll(data.selected)
+        && data.captainId is string
+        && data.captainId in data.selected
+        && validUsername(data.username)
+        && data.updatedAt == request.time;
+    }
+
+    // One get() per evaluation: the contest is loaded once and reused.
+    function canWriteEntry(data) {
+      let contest = contestDoc(data.contestId);
+      return entryWindowOpen(contest) && validEntry(data, contest);
+    }
+
+    // ---------- users ----------
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+
+      allow create: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(['username', 'avatarId', 'createdAt'])
+        && request.resource.data.keys().hasAll(['username', 'createdAt'])
+        && validUsername(request.resource.data.username)
+        && validAvatar(request.resource.data)
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if isOwner(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['username', 'avatarId'])
+        && validUsername(request.resource.data.username)
+        && validAvatar(request.resource.data);
+
+      allow delete: if isOwner(uid);
+    }
+
+    // ---------- feed ----------
+    match /meta/activeContests {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ---------- contests ----------
+    match /contests/{contestId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.status != 'DRAFT');
+      allow write: if isAdmin();
+    }
+
+    // ---------- entries ----------
+    match /entries/{entryId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid);
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(
+             ['contestId', 'userId', 'username', 'selected', 'captainId', 'createdAt', 'updatedAt'])
+        && request.resource.data.keys().hasAll(
+             ['contestId', 'userId', 'username', 'selected', 'captainId', 'createdAt', 'updatedAt'])
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.contestId is string
+        && entryId == request.resource.data.contestId + '_' + request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && canWriteEntry(request.resource.data);
+
+      allow update: if signedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['username', 'selected', 'captainId', 'updatedAt'])
+        && canWriteEntry(request.resource.data);
+
+      allow delete: if isAdmin()
+        || (signedIn()
+            && resource.data.userId == request.auth.uid
+            && request.time < contestDoc(resource.data.contestId).deadlineAt);
+    }
+
+    // ---------- published results ----------
+    match /contestResults/{contestId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ---------- admin-only ----------
+    match /adminDrafts/{contestId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /playerLibrary/{playerId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ---------- everything else ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

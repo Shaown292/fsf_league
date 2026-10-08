@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "908414747776",
+    "project_id": "fsf-league",
+    "storage_bucket": "fsf-league.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:908414747776:android:704de44833fc328f025265",
+        "android_client_info": {
+          "package_name": "com.fsf.fsf_league"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3kii1ZvlVQqLvcj7GoNWBn5THXDGhHWo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

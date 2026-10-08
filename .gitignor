@@ -1,0 +1,16 @@
+serviceAccount*.json
+tools/**/serviceAccount*.json
+.env
+.firebase/
+firebase-debug.log
+firestore-debug.log
+*.log
+node_modules/
+.idea/
+.vscode/
+firebase/.agents/
+firebase/.claude/
+firebase/skills-lock.json
+firebase/firebase/
+build/
+.dart_tool/
