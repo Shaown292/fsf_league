@@ -2,8 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'admin_gate.dart';
+import 'data/contest_repository.dart';
 import 'firebase_options.dart';
 
 const _useEmulator = bool.fromEnvironment('USE_EMULATOR');
@@ -17,6 +19,7 @@ Future<void> main() async {
     FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
   }
 
+  Get.put(ContestRepository(FirebaseFirestore.instance), permanent: true);
   runApp(const FsfLeagueAdminApp());
 }
 
@@ -25,8 +28,9 @@ class FsfLeagueAdminApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'FSF League Admin',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,

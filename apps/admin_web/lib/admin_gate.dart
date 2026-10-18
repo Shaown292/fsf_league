@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
-import 'dashboard_page.dart';
+import 'features/shell/admin_shell.dart';
 import 'log_in_page.dart';
 
 class AdminGate extends StatelessWidget {
@@ -56,8 +55,12 @@ class _AdminCheckState extends State<_AdminCheck> {
         }
         final isAdmin = snapshot.data?.claims?['admin'] == true;
         return isAdmin
-            ? DashboardPage(user: widget.user)
-            : const _Blocked(message: 'This account is not an administrator.');
+            ? AdminShell(user: widget.user)
+            : _Blocked(
+        message: 'This account is not an administrator.\n'
+        'Signed in as ${widget.user.email} (${widget.user.uid})\n'
+        'Claims: ${snapshot.data?.claims}',
+        );
       },
     );
   }
