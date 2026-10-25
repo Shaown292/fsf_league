@@ -1,9 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fsf_league_admin/features/contests/contest_controller.dart';
 import 'package:get/get.dart';
 
+import '../../core/app_mode.dart';
 import '../../data/contest_repository.dart';
-import '../contest/contest_controller.dart';
+import '../../data/player_library_repository.dart';
+import '../players/library_controller.dart';
 import 'admin_nav.dart';
 import 'routes.dart';
 
@@ -24,18 +27,24 @@ class _AdminShellState extends State<AdminShell> {
     _nav = Get.put(AdminNav());
     _nav.goRoot(dashboardRoute());
     Get.put(ContestsController(Get.find<ContestRepository>()));
+    Get.put(PlayerLibraryController(Get.find<PlayerLibraryRepository>()));
   }
 
   @override
   void dispose() {
-    // Clears cached contests when the admin signs out.
+    // Clears cached data when the admin signs out.
+    Get.delete<PlayerLibraryController>();
     Get.delete<ContestsController>();
     Get.delete<AdminNav>();
     super.dispose();
   }
 
   void _selectSection(int index) {
-    _nav.goRoot(index == 0 ? dashboardRoute() : contestListRoute());
+    _nav.goRoot(switch (index) {
+      0 => dashboardRoute(),
+      1 => contestListRoute(),
+      _ => playerLibraryRoute(),
+    });
   }
 
   @override
@@ -53,6 +62,8 @@ class _AdminShellState extends State<AdminShell> {
                     icon: Icon(Icons.dashboard_outlined), label: Text('Dashboard')),
                 NavigationRailDestination(
                     icon: Icon(Icons.sports_soccer), label: Text('Contests')),
+                NavigationRailDestination(
+                    icon: Icon(Icons.groups_outlined), label: Text('Players')),
               ],
               trailing: Expanded(
                 child: Align(
@@ -78,8 +89,6 @@ class _AdminShellState extends State<AdminShell> {
                 Expanded(
                   child: Obx(() {
                     final routes = _nav.stack.toList();
-                    // IndexedStack keeps earlier pages alive, so going back
-                    // does not reload anything.
                     return IndexedStack(
                       index: routes.length - 1,
                       children: [
@@ -118,6 +127,14 @@ class _Header extends StatelessWidget {
               ),
             Text(nav.current.title, style: Theme.of(context).textTheme.titleLarge),
             const Spacer(),
+            if (useEmulator)
+              const Padding(
+                padding: EdgeInsets.only(right: 12),
+                child: Chip(
+                  label: Text('EMULATOR'),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
             Text(email),
           ],
         ),

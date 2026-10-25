@@ -94,7 +94,7 @@ class ContestDetailView extends GetView<ContestsController> {
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           if (c.players.isEmpty)
-            const Text('No players yet. Player management arrives in Phase 6.')
+            const Text('No players yet. Use Manage players to add some.')
           else
             Wrap(
               spacing: 8,
@@ -123,7 +123,18 @@ class ContestDetailView extends GetView<ContestsController> {
             spacing: 12,
             runSpacing: 12,
             children: [
+              if (isDraft)
+                FilledButton.tonal(
+                  onPressed: busy ? null : () => nav.push(managePlayersRoute(c.id)),
+                  child: const Text('Manage players'),
+                )
+              else
+                OutlinedButton(
+                  onPressed: () => nav.push(managePlayersRoute(c.id)),
+                  child: const Text('View players'),
+                ),
               if (isDraft || isPublished)
+
                 OutlinedButton(
                   onPressed: busy
                       ? null

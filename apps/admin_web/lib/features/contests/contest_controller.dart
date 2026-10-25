@@ -107,6 +107,8 @@ class ContestsController extends GetxController {
 
   Future<String?> loadSamplePlayers(Contest c) => _run(() => _repo.replacePlayers(
       c.id, samplePlayers(), expectedVersion: c.version));
+  Future<String?> savePlayers(Contest c, Map<String, ContestPlayer> players) =>
+      _run(() => _repo.replacePlayers(c.id, players, expectedVersion: c.version));
 
   Future<String?> deleteDraft(Contest c) async {
     busy.value = true;

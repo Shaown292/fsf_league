@@ -5,21 +5,22 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'admin_gate.dart';
+import 'core/app_mode.dart';
 import 'data/contest_repository.dart';
+import 'data/player_library_repository.dart';
 import 'firebase_options.dart';
-
-const _useEmulator = bool.fromEnvironment('USE_EMULATOR');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  if (_useEmulator) {
+  if (useEmulator) {
     await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
     FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
   }
 
   Get.put(ContestRepository(FirebaseFirestore.instance), permanent: true);
+  Get.put(PlayerLibraryRepository(FirebaseFirestore.instance), permanent: true);
   runApp(const FsfLeagueAdminApp());
 }
 

@@ -163,8 +163,11 @@ class ContestRepository {
             throw AdminFailure('Player ${e.key} is invalid.');
           }
         }
+
         final next = current.copyWith(
             players: players, version: current.version + 1);
+        final rosterProblems = PlayerRoster.problems(players);
+        if (rosterProblems.isNotEmpty) throw AdminFailure(rosterProblems.first);
         tx.update(ref, {
           'players': ContestMapper.playersMap(next),
           'version': next.version,

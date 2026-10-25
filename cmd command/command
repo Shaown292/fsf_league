@@ -1,0 +1,11 @@
+# Terminal 1: leave it running
+cd H:\fsf_league
+.\dev.cmd
+
+# Terminal 2
+cd H:\fsf_league
+.\run-admin.cmd
+
+
+admin@example.com
+password123

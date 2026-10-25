@@ -3,6 +3,7 @@ import 'contest_player.dart';
 import 'contest_status.dart';
 import 'money.dart';
 import 'position.dart';
+import 'player_roster.dart';
 
 abstract final class ContestValidator {
   static List<String> detailsProblems(Contest c) {
@@ -47,6 +48,8 @@ abstract final class ContestValidator {
         problems.add('$label $issue.');
       }
     }
+    problems.addAll(PlayerRoster.problems(c.players));
+
 
     // Feasibility checks only make sense when the rules themselves are valid.
     if (c.rules.problems().isNotEmpty) return problems;

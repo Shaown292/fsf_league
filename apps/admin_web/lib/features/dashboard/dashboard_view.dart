@@ -28,6 +28,12 @@ class DashboardView extends StatelessWidget {
             action: 'Create',
             onPressed: () => nav.push(contestFormRoute()),
           ),
+          _Tile(
+            title: 'Player library',
+            body: 'Reusable players and default prices.',
+            action: 'Open library',
+            onPressed: () => nav.goRoot(playerLibraryRoute()),
+          ),
         ],
       ),
     );
